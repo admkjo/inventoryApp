@@ -1,0 +1,389 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="jobForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/sales.png" width="45" height="45"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="General Transactions (Sales)" style="font-size: 18px"/>
+
+                </h:panelGrid>
+                <p:contextMenu for="transactiontbl" style="width: 200px">   
+                    <p:menuitem id="showJobDetails" value="Show Items in Transaction" update=":jobDetailDialog" icon="ui-icon-search" oncomplete="viewJobDialog.show()"/>  
+                    <p:menuitem id="cancelJob" value="Cancel this Transaction" update=":jobCancelDialog" icon="ui-icon-close" oncomplete="cancelJobDialog.show()"/>  
+                    <p:menuitem id="paymentDialog" value="Show All Payments" update=":payDialog" icon="ui-icon-search" oncomplete="viewPaymentDialog.show()"/>  
+                </p:contextMenu>  
+
+                <p:blockUI block="transactiontbl" trigger="showJobDetails" >  
+                    LOADING<br />  
+                    <p:graphicImage value="/theme/navs/logo.png"/>   
+                </p:blockUI> 
+
+                <p:dataTable id="transactiontbl"
+                             var="item" rows="15" paginator="true" selectionMode="single" rowKey="#{item.paymentId}"
+                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="15,20,30,60" selection="#{transactionController.selectedPayment}"
+                             value="#{transactionController.paymentGeneralList}">
+                    <p:ajax event="rowSelect" listener="#{transactionController.handlePaySelection()}" update="transactiontbl"/> 
+                    <!--                    <f:facet name="header">  
+                                            <p:outputPanel>  
+                                                <h:outputText value="Search Customer Name:" />  
+                                                <h:inputText value="{transactionController.customerSearch}"/>
+                                                <p:commandButton value="Search" actionListener="{transactionController.searchCustomerTransaction()}" update=":jobForm:transactiontbl"/>
+                                            </p:outputPanel>
+                                        </f:facet>  -->
+                    <ui:param value="#{item.job.deleted == 'YES' ? 'text-decoration: line-through': 'text-decoration: none'}" name="canceled"/>
+                    <p:column style="text-align: left; width: 40px; "> 
+                        <f:facet name="header" >
+                            <h:outputText value="Invoice"  /> 
+                        </f:facet> 
+                        <h:outputText value="#{item.job.invoiceNo}" style="#{canceled}"/>  
+                    </p:column>
+                    <p:column style="text-align: left; width: 170px"> 
+                        <f:facet name="header" >
+                            <h:outputText value="Date"  />
+                        </f:facet>
+                        <h:outputText value="#{item.paymentDate}" style="#{canceled}">
+                            <f:convertDateTime pattern="dd-MMM-yyyy hh:mm:ss a" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: left; width: 250px">
+                        <f:facet name="header" >
+                            <h:outputText value="Customer"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.billTo}" escape="false" style="#{canceled}"/> 
+                    </p:column>
+
+                    <ui:param name="mode" value="#{item.paymentMode}"/>
+                    <ui:param name="modecash" value="Cash Payment"/>
+                    <ui:param name="modecheq" value="Cheque Payment"/>
+                    <ui:param name="modebaac" value="Bank Account Transfer"/>
+                    <ui:param name="modemomo" value="Mobile Money Payment"/>
+                    <ui:param name="alltrack" value="#{mode=='CASH'?modecash:mode=='CHEQ'?modecheq:mode=='BAAC'?modebaac:mode=='MOMO'?modemomo:'Emma doing Programming'}"/>
+                    <p:column style="width: 60px;text-align: left">
+                        <f:facet name="header" >
+                            <h:outputText value="Mode"  />
+                        </f:facet>
+                        <h:outputText value="#{item.paymentMode}"  
+                                      title="#{alltrack}"
+                                      style="font-size: 11px; #{canceled}"/>
+                    </p:column>
+
+                    <p:column style="width: 80px;background: #ffeded; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Amt. Due"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.amountDue}" style="font-size: 12px; font-weight: bold; #{canceled}">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                    <p:column style="width: 80px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Discount"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.discount}" style="font-size: 12px; font-weight: bold; #{canceled}">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                    <p:column style="width: 80px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Amt. Paid"  />
+                        </f:facet>
+                        <h:outputText value="#{item.amountPaid}" style="font-size: 12px; font-weight: bold; #{canceled}">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                    <p:column style="width: 60px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Change"  />
+                        </f:facet>
+                        <h:outputText value="#{item.changeGiven}" style="font-size: 12px; font-weight: bold; #{canceled}">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                    <p:column style="width: 60px;background: #ffffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Bal. Owing"  /> 
+                        </f:facet>
+                        <h:outputText value="#{item.balance}" style="font-size: 12px; font-weight: bold; #{item.balance gt 0 ? 'text-decoration: normal;color:red':''}">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                </p:dataTable>
+            </h:panelGroup>
+
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form>
+
+
+    <p:dialog style="height: auto; width: auto; overflow: scroll" id="jobDetailDialog" header="Items in transaction with Invoice No.: #{transactionController.selectedJob.invoiceNo}" 
+              widgetVar="viewJobDialog" resizable="true"  draggable="false"
+              width="950" showEffect="slide" hideEffect="slide" modal="true" dynamic="true" maximizable="true" >  
+        <h:panelGrid  columns="4" style="line-height: 26px">
+            <h:outputText value="Date:"/>
+            <h:outputText id="jdated"  value="#{transactionController.selectedJob.jobDate}"
+                          style="width: 510px; font-size: 14px; color: #990000">
+                <f:convertDateTime pattern="dd-MMM-yyyy hh:mm:ss a" timeZone="GMT"/>
+            </h:outputText>
+            <h:outputText/><h:outputText/>
+            <h:outputText value="Name:"/>
+            <h:outputText id="jcustomername"  value="#{transactionController.selectedJob.customer.customerName}"
+                          style="width: 510px; font-size: 14px; color: #0000cc"/>
+            <h:outputText value="Address:"/>
+            <h:outputText id="jaddress" value="#{transactionController.selectedJob.customer.postalAddress}"
+                          style="width: 510px; font-size: 14px; color: #0000cc"/>
+
+            <h:outputText value="Mobile Phone:"/>
+            <h:outputText id="jmobile" value="#{transactionController.selectedJob.customer.phoneNumber}"
+                          style="width: 510px; font-size: 14px; color: #0000cc"/>
+
+            <h:outputText value="E-mail:"/>
+            <h:outputText id="jemail" value="#{transactionController.selectedJob.customer.email}"
+                          style="width: 510px; font-size: 14px; color: #0000cc"/>
+        </h:panelGrid>
+        <br/>
+        <div class="clear"/>
+
+
+
+
+        <p:dataTable id="jmembertbl" sortOrder="descending"
+                     var="item" rows="15" 
+                     value="#{transactionController.jobDetailList}">
+            <p:column style="text-align: center">
+                <f:facet name="header" >
+                    <h:outputText value="No."  />
+                </f:facet>
+                <h:outputText value="N/A"/> 
+            </p:column>
+            <p:column>
+                <f:facet name="header" >
+                    <h:outputText value="Material Name"  />
+                </f:facet>
+                <h:outputText value="#{item.material.materialName}"/>
+            </p:column>
+            <p:column>
+                <f:facet name="header" >
+                    <h:outputText value="File Name"  />
+                </f:facet>
+                <h:outputText value="#{item.fileName}"/>
+            </p:column>
+            <p:column style="width: 100px;text-align: right">
+                <f:facet name="header" >
+                    <h:outputText value="Price"  />
+                </f:facet>
+                <h:outputText value="#{item.materialPrice}" style="font-size: 16px; font-weight: bold">
+                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                </h:outputText>
+            </p:column>
+            <p:column style="width: 60px">
+                <f:facet name="header" >
+                    <h:outputText value="Measure"  />
+                </f:facet>
+                <h:outputText value="#{item.measure =='F'?'Feet':'Inch'}" style="width: 65px; #{item.material.materialType=='S'?'text-decoration: line-through':''}"/>
+            </p:column>
+            <p:column style="width: 60px; text-align: center">
+                <f:facet name="header" >
+                    <h:outputText value="Width"  />  
+                </f:facet>
+                <h:outputText value="#{item.width}" style="font-size: 16px; text-align: center; width: 60px; #{item.material.materialType=='S'?'text-decoration: line-through':''}">
+                    <f:convertNumber maxFractionDigits="1" minFractionDigits="1"/>
+                </h:outputText> 
+            </p:column>
+            <p:column style="width: 60px; text-align: center">
+                <f:facet name="header" >
+                    <h:outputText value="Height"  />
+                </f:facet>
+                <h:outputText value="#{item.height}" style="font-size: 16px; text-align: center; width: 60px; #{item.material.materialType=='S'?'text-decoration: line-through':''}">
+                    <f:convertNumber maxFractionDigits="1" minFractionDigits="1"/>
+                </h:outputText>
+            </p:column>
+
+            <p:column style="width: 60px; text-align: center">
+                <f:facet name="header" >
+                    <h:outputText value="Quantity"  />
+                </f:facet>
+                <h:outputText value="#{item.quantity}" style="font-size: 16px; text-align: center; width: 60px">
+                </h:outputText>
+            </p:column>
+
+            <p:column style="width: 100px;background: #ccffcc; text-align: right">
+                <f:facet name="header" >
+                    <h:outputText value="Line Total"  />
+                </f:facet>
+                <h:outputText value="#{item.subtotal}" style="font-size: 16px; font-weight: bold">
+                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                </h:outputText>
+
+            </p:column> 
+        </p:dataTable>
+
+
+
+
+
+        <h:panelGroup id="jtransactioninfo" layout="block" styleClass="salescustomer fr" style="width: 300px">
+            <h:form id="newstuff" prependId="false">
+                <h:panelGrid columns="2" width="100%"  style="padding: 1px 1px 1px 5px; background: #ccffcc; float: right; margin-bottom: 5px">
+                    <h:outputText value="Subtotal:" style="font-size: 11px; font-weight: bold;"/>
+                    <h:outputText value="#{transactionController.selectedJob.amountDue}" style="font-weight: bold;font-size: 18px; color: #0000cc; float: right;margin-bottom: 5px; background: #ffff00;">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                    <h:outputText value="Discount Allowed:" style="font-size: 11px; font-weight: bold;margin-bottom: 5px"/>
+                    <h:inputText id="jdiscount" value="#{transactionController.selectedJob.discount}" style="width: 150px;float: right; font-size: 18px!important" dir="RTL" autocomplete="off" onkeypress="if (event.keyCode == 13)
+                                document.getElementById('jamountpaid').select()">
+                        <p:ajax update=":newstuff jnewAmountDue" listener="#{transactionController.handleDiscountChange()}" oncomplete="document.getElementById('jamountpaid').select()"/>
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:inputText>
+                    <h:outputText value="New Amount Due:" style="font-size: 11px; font-weight: bold;"/>
+                    <h:outputText id="jnewAmountDue" value="#{transactionController.newAmountDue}" style="font-weight: bold;font-size: 18px; color: #0000cc; float: right;margin-bottom: 5px; background: #ff99ff;">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                    <h:outputText value="Amount Paid:" style="font-size: 11px; font-weight: bold;margin-bottom: 5px"/>
+                    <h:inputText id="jamountpaid" value="#{transactionController.selectedJob.payment.amountPaid}" style="width: 150px;float: right; font-size: 18px!important" dir="RTL" autocomplete="off" onkeypress="if (event.keyCode == 13)
+                                document.getElementById('paymode').focus()">
+                        <p:ajax update=":newstuff jchangegiven" listener="#{transactionController.handleNewAmountPaidChange()}" oncomplete="document.getElementById('paymode').focus()"/>
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:inputText>
+                    <h:outputText value="Change:" style="font-size: 11px; font-weight: bold;margin-bottom: 5px"/>
+                    <h:inputText id="jchangegiven" value="#{transactionController.selectedJob.payment.changeGiven}" disabled="true" dir="RTL" 
+                                 style="width: 150px; font-size: 18px;float: right; font-size: 22px!important" autocomplete="off" onkeypress="if (event.keyCode == 13)
+                                             document.getElementById('paymode').focus()">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:inputText>
+                    <h:outputText value="Payment Mode:" style="font-size: 11px;font-weight: bold;"/>
+                    <h:selectOneMenu id="jpaymode" value="#{transactionController.selectedJob.payment.paymentMode}" style="width: 160px;float: right;margin-bottom: 5px" onkeypress="if (event.keyCode == 13)
+                                document.getElementById('saveprint').focus()" >
+                        <f:selectItem itemValue="CASH" itemLabel="Cash"/>
+                        <f:selectItem itemValue="CHEQ" itemLabel="Cheque"/>
+                        <f:selectItem itemValue="BAAC" itemLabel="Bank Transfer"/>
+                        <f:selectItem itemValue="MOMO" itemLabel="Mobile Money"/> 
+                    </h:selectOneMenu>
+                    <h:outputText value="Job Type:" style="font-size: 11px;font-weight: bold;"/>
+                    <h:selectOneMenu id="jjtype" value="#{transactionController.selectedJob.jobType}" style="width: 160px;float: right;margin-bottom: 5px" onkeypress="if (event.keyCode == 13)
+                                document.getElementById('saveprint').focus()" >
+                        <f:selectItem itemValue="ORDER" itemLabel="Order"/>
+                        <f:selectItem itemValue="QUOTATION" itemLabel="Quotation"/> 
+                    </h:selectOneMenu>
+                    <div style="clear: both"/>
+                </h:panelGrid>  
+                <p:commandButton value=" " style="width: 0px; background: #fff; height: 0px"/>
+                <div style="clear: both"/>
+                <p:commandButton id="jsaveprint" value="Save &amp; Reprint"  action="#{transactionController.adminSavePrint()}"
+                                 update=":newstuff :jobForm:amessage" ajax="false"
+                                 style="margin:0px 0 5px 0px; color: #004e4e; width: auto" icon="ui-icon-print"/>
+                <h:outputText style="margin-left: 30px"/>
+                <p:commandButton id="jsaveonly" value="Save Only"  action="#{transactionController.adminSaveOnly()}"
+                                 update=":newstuff :jobForm:amessage" ajax="false"
+                                 style="margin:0px 0 5px 0px; color: #990099; width: auto" icon="ui-icon-disk"/>
+
+            </h:form>
+        </h:panelGroup>
+
+    </p:dialog>
+
+    
+    <p:dialog style="height: auto; width: auto; overflow: scroll" id="payDialog" header="All Payments on Invoice No.:#{transactionController.selectedJob.invoiceNo}" 
+              widgetVar="viewPaymentDialog" resizable="true"  draggable="false"
+              width="950" showEffect="slide" hideEffect="slide" modal="true" dynamic="true" maximizable="true" > 
+
+
+
+        <p:dataTable id="jmembertbl1" sortOrder="descending"
+                     var="item" rows="15" 
+                     value="#{transactionController.paymentGeneralList}">
+            <p:column style="text-align: center; width: 10px">
+                <f:facet name="header" >
+                    <h:outputText value="No."  />
+                </f:facet>
+                <h:outputText value="N/A"/> 
+            </p:column>
+            <p:column>
+                <f:facet name="header" >
+                    <h:outputText value="Payment Type"  />
+                </f:facet>
+                <h:outputText value="#{item.paymentReference}"/>
+            </p:column>
+           <p:column>
+                <f:facet name="header" >
+                    <h:outputText value="Payment Mode"  />
+                </f:facet>
+                <h:outputText value="#{item.paymentMode}"/>
+            </p:column>
+            <p:column style=" text-align: center; width: 20px">
+                <f:facet name="header" >
+                    <h:outputText value="Amount Paid"  />
+                </f:facet>
+                <h:outputText value="#{item.amountPaid}" style="font-size: 16px; font-weight: bold">
+                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                </h:outputText>
+            </p:column>
+            <p:column style=" text-align: center; width: 20px">
+                <f:facet name="header" >
+                    <h:outputText value="Change Given"  />
+                </f:facet>
+                <h:outputText value="#{item.changeGiven}" style="font-size: 16px; font-weight: bold">
+                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                </h:outputText>
+            </p:column>
+            <p:column style=" text-align: center; ">
+                <f:facet name="header" >
+                    <h:outputText value="Balance"  />  
+                </f:facet>
+                <h:outputText value="#{item.balance}" style="font-size: 16px; font-weight: bold">
+                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+
+                </h:outputText> 
+            </p:column>
+            <p:column style="  text-align: center">
+                <f:facet name="header" >
+                    <h:outputText value="Payment Date"  />
+                </f:facet>
+                <h:outputText value="#{item.paymentDate}" style="font-size: 14px; "/>
+
+
+            </p:column>
+
+            <p:column style=" text-align: center">
+                <f:facet name="header" >
+                    <h:outputText value="Collected By"  />
+                </f:facet>
+                <h:outputText value="#{item.collectedBy}" style="font-size: 16px; text-align: center; width: 60px">
+                </h:outputText>
+            </p:column>  
+
+             
+        </p:dataTable>
+
+
+
+
+
+    </p:dialog>
+    
+    
+    
+    
+    
+    <p:dialog id="jobCancelDialog" header="About to cancel transaction with Invoice No.: #{transactionController.selectedJob.invoiceNo}" 
+              widgetVar="cancelJobDialog" resizable="false"  draggable="false"
+              width="400" showEffect="clip" hideEffect="fold" modal="true" >
+        <h:form >
+            <h:panelGrid columns="1">
+                <h:outputText value="Reason for canceling this Transaction:"/>
+                <h:inputTextarea value="#{transactionController.selectedJob.deletionReason}"/>
+                <p:commandButton value="Cancel Transaction"  action="#{transactionController.deleteTransaction()}"
+                                 update=":newstuff :jobForm:amessage" ajax="false"
+                                 style="margin:0px 0 5px 0px; color: #990000; width: auto" icon="ui-icon-cancel"/>
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+</h:panelGroup>

@@ -1,0 +1,479 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui"> 
+    <h:form id="aInvoiceForm" prependId="false">
+        <p:growl id="aInvoicecimessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="2" style="width: 100%"> 
+                    <h:panelGrid columns="4">
+                        <h:graphicImage url="./theme/navs/icons/transaction.png" width="45" height="45"/>
+                        <h:outputText style="margin-left: 10px"/>
+                        <h:outputText value="Flexible Invoice" style="font-size: 18px"/>
+<!--                        <h:selectOneMenu value="{transactionController.jobTransactionView}">
+                            <f:selectItem itemValue="JOB" itemLabel="Jobs"/> 
+                            <f:selectItem itemValue="PAY" itemLabel="Payments"/>
+                            <p:ajax update=":jobForm :jobForm:todayTransactionPayment" listener="{transactionController.handleTransactionViewChange()}"/>
+                        </h:selectOneMenu>-->
+                    </h:panelGrid>
+                </h:panelGrid>
+            </h:panelGroup>
+                
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form>
+    <h:form id="citransactionForm" prependId="false">
+        <p:growl id="cimessage" showDetail="false" autoUpdate="true"/>
+        <p:blockUI block=":citransactionForm:cidebtortbl" trigger=":citransactionForm:cidebtortbl:cirecallPayment" > 
+            RECALLING PAYMENT<br />  
+            <p:graphicImage value="/theme/navs/ajax-loader.gif"/>  
+        </p:blockUI> 
+        <h:panelGroup id="ciwelcome">
+            <h:panelGroup id="cisideLeftPanel" layout="block" styleClass="fl">
+                <h:panelGrid id="ciselection" columns="2">
+                    <h:outputText value="Trans. Date:"/>
+                    <h:panelGrid columns="4">
+                        <p:calendar pattern="dd-MMM-yyyy" timeZone="GMT" onchange="document.getElementById('cicustomerType').focus()"
+                                    onselect="document.getElementById('cicustomerType').focus()"
+                                    onblur="document.getElementById('cicustomerType').focus()"
+                                    onkeypress="if (event.keyCode == 13) document.getElementById('cicustomerType').focus()"
+                                    value="#{transactionController.transactionDate}"/>
+                        <h:outputText style="margin-left: 10px"/>
+                        <h:outputText value="Customer Type:"/>
+                        <h:selectOneMenu id="cicustomerType" value="#{transactionController.customerType}" style="width: 170px;" onkeypress="if (event.keyCode == 13) document.getElementById('ciamountpaid').select()" >
+                            <f:selectItem itemValue="NC" itemLabel="New Customer"/>
+                            <f:selectItem itemValue="EC" itemLabel="Existing Customer"/>
+                            <p:ajax update=":citransactionForm:cisideLeftPanel :citransactionForm:cioldcustomer :citransactionForm:ciNormalTransaction :citransactionForm:ciwelcome" listener="#{transactionController.handleClientTypeChange()}"/>
+                        </h:selectOneMenu>  
+                    </h:panelGrid>
+                </h:panelGrid> 
+
+                <h:panelGrid id="cinewcustomer" columns="2" rendered="#{transactionController.customerType == 'NC' ? true : false}">
+                    <h:outputText value="Name:"/>
+                    <h:inputText id="cicustomername"  value="#{transactionController.customer.customerName}"
+                                 style="width: 510px" onkeypress="if (event.keyCode == 13) document.getElementById('ciaddress').focus()"/>
+                    <h:outputText value="Address:"/>
+                    <h:panelGrid columns="4">
+                        <h:inputText id="ciaddress" value="#{transactionController.customer.postalAddress}"
+                                     onkeypress="if (event.keyCode == 13) document.getElementById('cimobile').focus()"/>
+                        <h:outputText style="margin-left: 8px"/>
+                        <h:outputText value="Mobile Phone:"/>
+                        <h:inputText id="cimobile" value="#{transactionController.customer.phoneNumber}"
+                                     onkeypress="if (event.keyCode == 13) document.getElementById('ciemail').focus()"/>
+                    </h:panelGrid>
+                    <h:outputText value="E-mail:"/>
+                    <h:panelGrid columns="4">
+                        <h:inputText id="ciemail" value="#{transactionController.customer.email}"
+                                     onkeypress="if (event.keyCode == 13) document.getElementById('cimaterial').focus()"/>
+                        <h:outputText style="margin-left: 71px"/>
+                        <p:commandButton value=" " style="width: 0px; background: #fff; height: 0px"/>
+                        <p:commandButton value="Save this client as a customer" actionListener="#{transactionController.saveClientCustomer()}"
+                                         update=":citransactionForm:ciwelcome  :citransactionForm:cimessage" icon="ui-icon-disk"
+                                         style="font-size: 11px; color: #000099"/>
+                    </h:panelGrid>
+
+
+                </h:panelGrid>
+                <h:panelGroup id="cioldcustomer" rendered="#{transactionController.customerType != 'NC' ? true : false}"> 
+                    <h:panelGrid columns="3">
+                        <ui:param name="myfocus" value="#{transactionController.customer == null ? 'searchtext':'material'}"/>
+                        <h:outputText value="Search Customer:"/>
+                        <h:inputText id="cisearchtext" value="#{transactionController.searchText}" style="width: 370px" onkeypress="if (event.keyCode == 13) document.getElementById('cisearchtext').focus()">
+                            <p:ajax listener="#{transactionController.searchCustomer()}" update=":citransactionForm:ciwelcome :citransactionForm:cidebtortbl :citransactionForm:cidebtortbl:cirecallPayment" 
+                                    oncomplete="document.getElementById('#{cimyfocus}').focus()"/>
+                        </h:inputText>
+                        <p:commandButton value="Search" actionListener="#{transactionController.searchCustomer()}" 
+                                         style="float: right" update=":citransactionForm:ciwelcome :citransactionForm:cidebtortbl :citransactionForm:cidebtortbl:cirecallPayment"/>
+                        <div class="clear"/>
+                        <h:panelGroup layout="block" >
+                            <h:outputText value="No records found." style="color: #0000cc" rendered="#{transactionController.customer.customerName == null ? true :false}"/>
+                            <h:panelGrid columns="2" rendered="#{transactionController.customer.customerName != null ? true :false}">
+                                <h:outputText value="Customer Name: " style="font-size: 12px"/>
+                                <h:outputText value="#{transactionController.customer.customerName}" style="color: #0000cc;font-size: 14px"/>
+                                <h:outputText value="Mobile Phone: " style="font-size: 12px"/>
+                                <h:outputText value="#{transactionController.customer.phoneNumber}" style="color: #0000cc;font-size: 14px"/>
+                                <h:outputText value="E-mail Address: " style="font-size: 12px"/>
+                                <h:outputText value="#{transactionController.customer.email}" style="color: #0000cc;font-size: 14px"/>
+                            </h:panelGrid>
+                        </h:panelGroup>
+                    </h:panelGrid>
+
+                    <h:panelGrid columns="1" rendered="#{transactionController.debtorFoundInSearch}" style="margin-left: 118px">
+                        <h:outputText value="Outstanding Balance(s) to Remit" style="color: #ff0000"/>
+                        <h:panelGroup layout="block"  >
+                            <p:dataTable id="cidebtortbl" var="dbt"
+                                         value="#{transactionController.debtorList}">
+                                <p:column style="text-align: right">
+                                    <f:facet name="header">
+                                        <h:outputText value="Trans. Date"  />
+                                    </f:facet>
+                                    <h:outputText value="#{dbt.job.jobDate}">
+                                        <f:convertDateTime pattern="dd-MMM-yyyy" timeZone="GMT"/>
+                                    </h:outputText>
+                                    <!--                                    <f:facet name="footer">
+                                                                            <h:outputText value="Total:"  />
+                                                                        </f:facet>-->
+                                </p:column>
+                                <p:column>
+                                    <f:facet name="header">
+                                        <h:outputText value="Invoice"  />
+                                    </f:facet>
+                                    <h:outputText value="#{dbt.job.invoiceNo}"/>
+                                </p:column>
+                                <p:column style="text-align: right; width: 60px">
+                                    <f:facet name="header">
+                                        <h:outputText value="Amount Due"  />
+                                    </f:facet>
+                                    <h:outputText value="#{dbt.job.amountDue}">
+                                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column style="text-align: right; width: 60px">
+                                    <f:facet name="header">
+                                        <h:outputText value="Paid"  />
+                                    </f:facet>
+                                    <h:outputText value="#{dbt.job.amountPaid}">
+                                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column style="text-align: right; width: 60px">
+                                    <f:facet name="header">
+                                        <h:outputText value="Balance"  />
+                                    </f:facet>
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{transactionController.debtorInSearchTotalBalance}">
+                                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                                        </h:outputText>
+                                    </f:facet>
+                                    <h:outputText value="#{dbt.balance}">
+                                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                                    </h:outputText>
+                                    <!--                                    <f:facet name="footer">
+                                                                            <h:outputText value="2000"/>
+                                                                        </f:facet>-->
+                                </p:column>
+                                <p:column>
+                                    <f:facet name="header">
+                                        <h:outputText value=""/>
+                                    </f:facet>
+                                    <p:commandLink id="cirecallPayment" value="Recall for Payment" 
+                                                   action="#{transactionController.recallDebitForPayment(dbt)}" 
+                                                   update=":citransactionForm:ciNormalTransaction :citransactionForm:ciwelcome" ajax="true"
+                                                   style="color: #cc0000" oncomplete="document.getElementById('bamountpaying').focus()"/>
+                                </p:column>
+                            </p:dataTable>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </h:panelGroup>
+            </h:panelGroup>
+            <h:panelGroup id="cisideRightPanel" layout="block" styleClass="fr">
+
+            </h:panelGroup>
+            <div style="clear: both"/>
+            <br/>
+            <div class="clear"/>
+            <h:panelGroup id="ciNormalTransaction" layout="block" rendered="#{!transactionController.recallDebitPayment}">
+                <h:panelGrid columns="8">
+                    <h:outputText value="Select Material Type:"/>
+                    <h:selectOneMenu id="cimaterial" value="#{transactionController.material}" style="width: 200px">
+                        <f:selectItem itemLabel="--Select Item--" itemValue=""/>
+                        <f:selectItems value="#{transactionController.materialSelect}" /> 
+                        <p:ajax update="cimembertbl :citransactionForm:citransactioninfo" listener="#{transactionController.handleStockChangeFlexible()}" oncomplete="document.getElementById('cimembertbl:#{transactionController.itemCount.toString()}:finame').focus()"/>
+                    </h:selectOneMenu>
+                    <p:commandButton value=" " style="width: 0px; background: #fff; height: 0px"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Invoice No.:"/>
+                    <h:outputText value="#{transactionController.invoiceNo}" style="color: #990000;font-weight: bold; font-size: 16px"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <p:commandButton value="Cancel and Restart Transaction" actionListener="#{transactionController.cancelTransaction()}"
+                                     update=":citransactionForm:ciwelcome  :citransactionForm:cimessage" onclick="return confirm('Are you sure you want to cancel and restart transaction?')"
+                                     style="font-size: 11px; color: #660066" icon="ui-icon-close"/>
+                </h:panelGrid>
+
+                <p:dataTable id="cimembertbl" sortOrder="descending"
+                             var="item" rows="15" 
+                             value="#{transactionController.stockItemList}">
+                    <p:column style="text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value=""  />
+                        </f:facet>
+                        <p:commandLink value="Remove" action="#{transactionController.removeStockItem(item.material)}" style="color: #990000"
+                                       update="cimembertbl :citransactionForm:ciwelcome" oncomplete="document.getElementById('cimaterial').focus()"/>
+                    </p:column>
+                    <p:column style="text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="No."  />
+                        </f:facet>
+                        <h:outputText value="#{item.count}"/> 
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header" >
+                            <h:outputText value="Material Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.description}"/>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header" >
+                            <h:outputText value="File Name"  />
+                        </f:facet>
+                        <h:inputText id="cifiname" value="#{item.fileName}" onkeypress="if (event.keyCode == 13) document.getElementById('cimembertbl:${item.count - 1}:cimaterialcost').focus()">
+                            <p:ajax update="cimembertbl" oncomplete="document.getElementById('cimembertbl:${item.count - 1}:cimaterialcost').focus()"/>
+                        </h:inputText>
+                    </p:column>
+                    <p:column style="width: 100px;text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Price"  />
+                        </f:facet>
+                        
+                        <h:inputText id="cimaterialcost" value="#{item.materialCost}" style="font-size: 16px; text-align: center; width: 60px"  onkeypress="if (event.keyCode == 13) document.getElementById('cimembertbl:${item.count - 1}:cimeasure').focus()" autocomplete="off">
+                            <p:ajax update="cimembertbl" oncomplete="document.getElementById('cimembertbl:${item.count - 1}:cimeasure').focus()"/> 
+                        </h:inputText>
+                    </p:column>
+                    <p:column style="width: 60px"> 
+                        <f:facet name="header" >
+                            <h:outputText value="Measure"  />
+                        </f:facet>
+                        <h:selectOneMenu id="cimeasure" disabled="#{item.materialType=='S'?true:false}" value="#{item.unitOfMeasure}" style="width: 65px" 
+                                         onselect="document.getElementById('cimembertbl:${item.count - 1}:width').select()"
+                                         onkeypress="if (event.keyCode == 13) document.getElementById('cimembertbl:${item.count - 1}:width').select()">
+                            <f:selectItem itemValue="F" itemLabel="Feet" /> 
+                            <f:selectItem itemValue="I" itemLabel="Inch" /> 
+                            <p:ajax update="cimembertbl :citransactionForm:citransactioninfo" oncomplete="document.getElementById('cimembertbl:#{transactionController.itemCount.toString()}:ciwidth').select()"/>
+                        </h:selectOneMenu>
+                    </p:column>
+                    <p:column style="width: 60px; text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="Width"  />
+                        </f:facet>
+                        <h:inputText id="ciwidth" disabled="#{item.materialType=='S'?true:false}" value="#{item.materialWidth}" style="font-size: 16px; text-align: center; width: 60px"  onkeypress="if (event.keyCode == 13) document.getElementById('cimembertbl:${item.count - 1}:ciheight').select()" autocomplete="off">
+                            <p:ajax update="cimembertbl :citransactionForm:citransactioninfo" oncomplete="document.getElementById('cimembertbl:${item.count - 1}:ciheight').select()"/>
+                        </h:inputText>
+                    </p:column>
+                    <p:column style="width: 60px; text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="Height"  />
+                        </f:facet>
+                        <h:inputText id="ciheight" disabled="#{item.materialType=='S'?true:false}" value="#{item.materialHeight}" style="font-size: 16px; text-align: center; width: 60px"  onkeypress="if (event.keyCode == 13) document.getElementById('cimembertbl:${item.count - 1}:ciquantity').select()" autocomplete="off">
+                            <p:ajax update="cimembertbl :citransactionForm:citransactioninfo" oncomplete="document.getElementById('cimembertbl:${item.count - 1}:ciquantity').select()"/>
+                        </h:inputText> 
+                    </p:column>
+                    <ui:param id="cisubtot" name="subtotal" value="#{transactionController.sumUpJobSales()}">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </ui:param>
+                    <p:column style="width: 60px; text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="Quantity"  />
+                        </f:facet>
+                        <h:inputText id="ciquantity" value="#{item.quantity}" style="font-size: 16px; text-align: center; width: 60px"  onkeypress="if (event.keyCode == 13) document.getElementById('cimaterial').focus()" autocomplete="off">
+                            <p:ajax update="cimembertbl :citransactionForm:citransactioninfo" oncomplete="document.getElementById('cimaterial').focus()"/>
+                        </h:inputText>
+                    </p:column>
+
+                    <p:column style="width: 100px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Line Total"  />
+                        </f:facet>
+                        <h:outputText id="cilinetotal" value="#{item.lineTotal}" style="font-size: 16px; font-weight: bold">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                </p:dataTable>
+                <h:panelGroup id="citransactioninfo" layout="block" styleClass="salescustomer fr" style="width: 280px">
+                    <h:panelGrid columns="2" width="100%"  style="padding: 1px 1px 1px 5px; background: #ccffcc; float: right; margin-bottom: 5px">
+                        <h:outputText value="Amount Due:" style="font-size: 11px; font-weight: bold;"/>
+                        <h:outputText value="#{subtotal}" style="font-weight: bold;font-size: 18px; color: #0000cc; float: right;margin-bottom: 5px; background: #ffff00;">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+
+                        <h:outputText value="Amount Paid:" style="font-size: 11px; font-weight: bold;margin-bottom: 5px"/>
+                        <h:inputText id="ciamountpaid" value="#{transactionController.payment.amountPaid}" style="width: 150px;float: right; font-size: 22px!important" dir="RTL" autocomplete="off" onkeypress="if (event.keyCode == 13) document.getElementById('cichangegiven').select()">
+                            <p:ajax update=":citransactionForm:citransactioninfo cichangegiven" listener="#{transactionController.handleAmountPaidChange()}" oncomplete="document.getElementById('cipaymode').focus()"/>
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:inputText>
+                        <h:outputText value="Change:" style="font-size: 11px; font-weight: bold;margin-bottom: 5px"/>
+                        <h:inputText id="cichangegiven" value="#{transactionController.payment.changeGiven}" disabled="true" dir="RTL" 
+                                     style="width: 150px; font-size: 20px;float: right; font-size: 22px!important" autocomplete="off" onkeypress="if (event.keyCode == 13) document.getElementById('cipaymode').focus()">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:inputText>
+                        <h:outputText value="Payment Mode:" style="font-size: 11px;font-weight: bold;"/>
+                        <h:selectOneMenu id="cipaymode" value="#{transactionController.payment.paymentMode}" style="width: 160px;float: right;margin-bottom: 5px" onkeypress="if (event.keyCode == 13) document.getElementById('cisaveprint').focus()" >
+                            <f:selectItem itemValue="CASH" itemLabel="Cash"/>
+                            <f:selectItem itemValue="CHEQ" itemLabel="Cheque"/>
+                            <f:selectItem itemValue="BAAC" itemLabel="Bank Transfer"/>
+                            <f:selectItem itemValue="MOMO" itemLabel="Mobile Money"/>
+                        </h:selectOneMenu>
+                        <h:outputText value="Invoice Type:" style="font-size: 11px;font-weight: bold;"/>
+                        <h:selectOneMenu id="cijtype" value="#{transactionController.job.jobType}" style="width: 160px;float: right;margin-bottom: 5px" onkeypress="if (event.keyCode == 13) document.getElementById('cisaveprint').focus()" >
+                            <f:selectItem itemValue="ORDER" itemLabel="Proforma Invoice"/>
+                            <f:selectItem itemValue="QUOTATION" itemLabel="Quotation"/> 
+                        </h:selectOneMenu>
+                        <div style="clear: both"/>
+                    </h:panelGrid>  
+                    <div style="clear: both"/>
+                    <p:commandButton id="cisaveprint" value="Save &amp; Print"  action="#{transactionController.savePrint()}"
+                                     style="margin:0px 0 5px 0px; color: #004e4e; width: auto" ajax="false" icon="ui-icon-print"/>
+                    <h:outputText style="margin-left: 30px"/>
+                    <p:commandButton id="cisaveonly" value="Save Only"  action="#{transactionController.saveOnly()}"
+                                     style="margin:0px 0 5px 0px; color: #990099; width: auto" ajax="false" icon="ui-icon-disk"/>
+                </h:panelGroup>
+            </h:panelGroup>
+            <h:panelGroup id="ciDebtPaymentTransaction" layout="block" rendered="#{transactionController.recallDebitPayment}" style="width: 100%">
+                <h:panelGrid columns="10">
+                    <h:outputText value="Invoice Recalled: " style="font-size: 12px; font-weight: normal"/>
+                    <h:outputText value="#{transactionController.selectedDebtor.job.invoiceNo}" style="font-size: 12px; font-weight: bold"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Transaction Date: " style="font-size: 12px; font-weight: normal"/>
+                    <h:outputText value="#{transactionController.selectedDebtor.job.jobDate}" style="font-size: 12px; font-weight: bold">
+                        <f:convertDateTime pattern="dd-MMM-yyyy" timeZone="GMT"/>
+                    </h:outputText>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Transaction Time: " style="font-size: 12px; font-weight: normal"/>
+                    <h:outputText value="#{transactionController.selectedDebtor.job.jobDate}" style="font-size: 12px; font-weight: bold">
+                        <f:convertDateTime pattern="hh:mm:ss a" timeZone="GMT"/>
+                    </h:outputText>
+                    <h:outputText style="margin-left: 10px"/>
+                    <p:commandButton value="Cancel and Restart Transaction" actionListener="#{transactionController.cancelTransaction()}"
+                                     update=":citransactionForm:ciwelcome  :citransactionForm:cimessage" onclick="return confirm('Are you sure you want to cancel and restart transaction?')"
+                                     style="font-size: 11px; color: #660066" icon="ui-icon-close"/>
+                </h:panelGrid>
+ 
+                <p:dataTable id="cibtransactiontbl" sortOrder="descending"
+                             var="item" rows="15" 
+                             value="#{transactionController.jobDetailList}">
+                    <p:column style="text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="No."  />
+                        </f:facet>
+                        <h:outputText value="N/A"/> 
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header" >
+                            <h:outputText value="Material Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.material.materialName}"/>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header" >
+                            <h:outputText value="File Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.fileName}"/>
+                    </p:column>
+                    <p:column style="width: 100px;text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Price"  />
+                        </f:facet>
+                        <h:outputText value="#{item.materialPrice}" style="font-size: 16px; font-weight: bold">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="width: 60px">
+                        <f:facet name="header" >
+                            <h:outputText value="Measure"  />
+                        </f:facet>
+                        <h:outputText value="#{item.measure =='F'?'Feet':'Inch'}" style="width: 65px; #{item.material.materialType=='S'?'text-decoration: line-through':''}"/>
+                    </p:column>
+                    <p:column style="width: 60px; text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="Width"  />  
+                        </f:facet>
+                        <h:outputText value="#{item.width}" style="font-size: 16px; text-align: center; width: 60px; #{item.material.materialType=='S'?'text-decoration: line-through':''}">
+                            <f:convertNumber maxFractionDigits="1" minFractionDigits="1"/>
+                        </h:outputText> 
+                    </p:column>
+                    <p:column style="width: 60px; text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="Height"  />
+                        </f:facet>
+                        <h:outputText value="#{item.height}" style="font-size: 16px; text-align: center; width: 60px; #{item.material.materialType=='S'?'text-decoration: line-through':''}">
+                            <f:convertNumber maxFractionDigits="1" minFractionDigits="1"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column style="width: 60px; text-align: center">
+                        <f:facet name="header" >
+                            <h:outputText value="Quantity"  />
+                        </f:facet>
+                        <h:outputText value="#{item.quantity}" style="font-size: 16px; text-align: center; width: 60px">
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column style="width: 100px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Line Total"  />
+                        </f:facet>
+                        <h:outputText value="#{item.subtotal}" style="font-size: 16px; font-weight: bold">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+
+                    </p:column> 
+                </p:dataTable>
+
+                <h:panelGrid id="cibTransactionInfo" columns="11" style="margin-top: 5px">
+                    <h:outputText value="Amount Due:" style="font-size: 12px"/>
+                    <h:inputText value="#{transactionController.selectedDebtor.job.amountDue}" disabled="true" dir="rtl" style="font-weight: bold; width: 100px">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:inputText>
+                    <h:outputText style="margin-left: 15px"/>
+                    <h:outputText value="Discount Allowed:" style="font-size: 12px"/>
+                    <h:inputText value="#{transactionController.selectedDebtor.job.discount}" disabled="true" dir="rtl" style="font-weight: bold; width: 100px">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:inputText>
+                    <h:outputText style="margin-left: 15px"/>
+                    <h:outputText value="Total Amount Paid:" style="font-size: 12px"/>
+                    <h:inputText value="#{transactionController.selectedDebtor.job.amountPaid}" disabled="true" dir="rtl" style="font-weight: bold; width: 100px">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:inputText>
+                    <h:outputText style="margin-left: 15px"/>
+                    <h:outputText value="Outstanding Balance:" style="font-size: 12px"/>
+                    <h:inputText value="#{transactionController.selectedDebtor.balance}" disabled="true" dir="rtl" style="font-weight: bold; width: 100px">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/> 
+                    </h:inputText>
+
+                    <h:outputText/>
+                    <h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/>
+                    <h:outputText value="Amount Paying Now:" style="font-size: 12px;color: #006666"/>
+                    <h:inputText id="cibamountpaying" value="#{transactionController.payment.amountPaid}" onkeypress="if (event.keyCode == 13) document.getElementById('cibchange').focus()"
+                                 dir="rtl" style="font-weight: bold; width: 100px; font-size: 16px">
+                        <p:ajax update=":citransactionForm:cibTransactionInfo cibchange" listener="#{transactionController.handleBalancePaidChange()}" oncomplete="document.getElementById('cibpaymode').focus()"/>
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/> 
+                    </h:inputText>
+                    <h:outputText/>
+                    <h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/>
+                    <h:outputText value="Change Given:" style="font-size: 12px;color: #006666"/>
+                    <h:inputText id="cibchange" value="#{transactionController.payment.changeGiven}"
+                                 disabled="true" dir="rtl" style="font-weight: bold; width: 100px; font-size: 16px">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/> 
+                    </h:inputText>
+                    <h:outputText/>
+                    <h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/><h:outputText/>
+                    <h:outputText value="Payment Mode:" style="font-size: 11px;font-weight: bold;"/>
+                    <h:selectOneMenu id="cibpaymode" value="#{transactionController.payment.paymentMode}" style="width: 120px;float: right;margin-bottom: 5px" onkeypress="if (event.keyCode == 13) document.getElementById('cibsaveprint').focus()" >
+                        <f:selectItem itemValue="CASH" itemLabel="Cash"/>
+                        <f:selectItem itemValue="CHEQ" itemLabel="Cheque"/>
+                        <f:selectItem itemValue="BAAC" itemLabel="Bank Transfer"/>
+                        <f:selectItem itemValue="MOMO" itemLabel="Mobile Money"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="Invoice Type:" style="font-size: 11px;font-weight: bold;"/>
+                    <h:selectOneMenu id="cibjtype" value="#{transactionController.job.jobType}" style="width: 160px;float: right;margin-bottom: 5px" onkeypress="if (event.keyCode == 13) document.getElementById('cisaveprint').focus()" >
+                        <f:selectItem itemValue="ORDER" itemLabel="Proforma Invoice"/>
+                        <f:selectItem itemValue="QUOTATION" itemLabel="Quotation"/> 
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <h:panelGrid columns="3" style="float: right">
+                    <p:commandButton id="cibsaveprint" value="Save &amp; Print"  action="#{transactionController.debtPaymentSavePrint()}"
+                                     style="margin:0px 0 5px 0px; color: #004e4e; width: auto" ajax="false" icon="ui-icon-print"/>
+                    <h:outputText style="margin-left: 30px"/>
+                    <p:commandButton id="cibsaveonly" value="Save Only"  action="#{transactionController.debtPaymentSaveOnly()}"
+                                     style="margin:0px 0 5px 0px; color: #990099; width: auto" ajax="false" icon="ui-icon-disk"/>
+                </h:panelGrid>
+                <div style="clear: both"/>
+            </h:panelGroup>
+        </h:panelGroup>
+
+        <div style="clear: both"/>
+    </h:form>
+</h:panelGroup>

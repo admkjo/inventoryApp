@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link href="./../theme/css/admin.css" rel="stylesheet" type="text/css" />
+        <link href="./../theme/css/tabcontent.css" rel="stylesheet" type="text/css" />
+        <link href="../../js/facefiles/facebox.css" media="screen" rel="stylesheet" type="text/css" />
+        
+        <!--<link rel="shortcut icon" href="./theme/scapital/nav/favicon.ico" type="image/x-icon" />-->
+        <title>
+            <ui:insert name="adv_title">Administrative Login</ui:insert> 
+        </title>
+    </h:head>
+    <h:body>
+        <ui:include src="/admin/pages/ajaxincludes.xhtml"/>
+        <h:panelGroup id="banner" layout="block">
+            <h:panelGroup layout="block" rendered="${adminAccessController.isAdmin}" style="float:right;font-size:13px; font-family: 'Trebuchet MS',Arial,Helvetica,sans-serif">
+                <h:outputText escape="false" value="Logged in as &lt;label style='color:#bad406; font-weight:bold'&gt;${adminAccessController.loginUsername}. &lt;/label&gt;" />
+                <span style="padding-right: 10px"/>
+                <h:panelGroup layout="block" style="font-size: 12px; font-weight: bold; float: right">
+                    <h:form>
+                        <h:commandLink value="Logout"  action="${userLogin.logoutClient}" style="color: #fb0808" onclick="return confirm('Are you sure you want to logout?')"/>
+                    </h:form>
+                </h:panelGroup>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" style="float:right;font-size:13px" rendered="${!adminAccessController.isAdmin}">
+                ${startupController.getApplicationSettings(0,1)} .
+            </h:panelGroup>
+            <img alt="Admin Login" src="../resources/images/admin.png"/>
+        </h:panelGroup>
+        <h:panelGroup id="wrapper" layout="block" rendered="${!adminAccessController.isAdmin}">
+            <h:panelGroup id="links" layout="block">
+                <a class="greenbtn" href="../../">Home </a>
+            </h:panelGroup>
+            <h:panelGroup id="alogin" layout="block">
+                <h:panelGroup id="ll" layout="block">
+                    <h3>Administrative Login</h3>
+                    <div style="margin:5px 0px 5px 0px; border-bottom: 2px solid #990000"> </div>
+                </h:panelGroup>
+                <h:form>
+                    <h:messages warnClass="errortxt" infoClass="infotxt" fatalClass="errortxt" errorClass="errortxt"  />
+                    <h:panelGrid columns="2" cellspacing="6" cellpadding="5" style="width: 100%">
+                        <h:outputText value="Username: "/><h:inputText value="#{userLogin.username}"/>
+                        <h:outputText value="Password: "/><h:inputSecret value="#{userLogin.password}"/>
+                        <h:outputText/>
+                        <h:commandButton value="Login" action="${userLogin.adminLogin()}"/>
+                        <h:outputText/><h:outputText value="Forgotten password | "/>
+                    </h:panelGrid>
+                </h:form>
+
+            </h:panelGroup>
+
+        </h:panelGroup>
+        <h:panelGroup id="mainbody" layout="block" rendered="${adminAccessController.isAdmin}">
+            <ui:include src="/admin/pages/${startupController.pageFile}"/>
+            <div style="clear: both"/>
+        </h:panelGroup>
+        
+        <h:panelGroup id="footer" layout="block"></h:panelGroup>
+
+    </h:body>
+</html>
+
+

@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link href="./theme/css/main.css" rel="stylesheet" type="text/css" />
+        <!--<link rel="shortcut icon" href="./theme/scapital/nav/favicon.ico" type="image/x-icon" />-->
+        <title>
+            <ui:insert name="adv_title">${startupController.getApplicationSettings(0,1)}</ui:insert> 
+        </title>
+        <script type="text/javascript">
+            $.ajaxSetup ({
+                cache: false,
+                headers: { "cache-control": "no-cache" }
+            }); 
+        </script>  
+    </h:head>
+    <h:body id="home">
+        <h:panelGroup layout="block" styleClass="adv_wrapper">
+            <h:panelGroup layout="block" styleClass="adv_header_wrapper">
+                <h:panelGroup layout="block" styleClass="adv_banner" style="width: 250px">
+                    <h:panelGroup layout="block" styleClass="site_name">
+                        ${startupController.getApplicationSettings(0,1)}
+                    </h:panelGroup>
+                </h:panelGroup>
+            </h:panelGroup>
+            <h:form prependId="false">
+                
+                <p:growl id="msg" showDetail="false" />
+                <h:panelGroup layout="block" style="margin: 100px auto; width: 350px" rendered="#{!adminAccessController.isLogin}">
+                    <p:panel header="Please Login to continue" footer="Powered by Sabonay Technologies!" style="width: 340px">  
+                        <h:panelGrid columns="2" >
+                            <h:outputText value="Username: "/>
+                            <h:inputText value="#{userLogin.username}"/>
+                            <h:outputText value="Password: "/>
+                            <h:inputSecret value="#{userLogin.password}"/> 
+                            <h:outputText/>
+                            
+                            <p:commandButton value="Click to Login" ajax="false" action="#{userLogin.adminLogin()}"/>
+                        </h:panelGrid>
+                    </p:panel>
+                </h:panelGroup>
+            </h:form>
+            <h:panelGroup layout="block" rendered="#{adminAccessController.isLogin}" styleClass="welcome-login">
+                <h:panelGroup id="clientuser" layout="block" rendered="#{!adminAccessController.isAdmin}" >
+                    <h:form style="float: right;">
+                        <h:panelGrid columns="1">
+                            <p:megaMenu  style=" text-align: right; width: 280px">
+                                <p:menuitem value="Welcome! #{adminAccessController.loginUsername} |     " style="color: #0033cc; font-weight: bold"/>
+                                <p:menuitem value="Logout" icon="ui-icon-power" 
+                                            action="#{userLogin.logoutClient()}" style="color: red;"/>  
+                            </p:megaMenu>
+                            <p:commandButton value="Recall a Transaction" icon="ui-icon-search" style="font-size: 11px; width: 290px"/>
+                            <p:commandButton value="View Today Sales" icon="ui-icon-search" style="font-size: 11px; width: 290px"/>
+                            <p:commandButton value="Lookup a Transaction" icon="ui-icon-search" style="font-size: 11px; width: 290px"/>
+                            <p:commandButton value="View all Debtors" icon="ui-icon-search" style="font-size: 11px; width: 290px"/>
+                        </h:panelGrid>
+
+                    </h:form>
+                    <ui:include src="/pages/point-of-sale.xhtml"/>
+                </h:panelGroup>
+
+                <h:panelGroup id="adminuser" layout="block" rendered="#{adminAccessController.isAdmin}">
+                    <h:form>
+                        <p:megaMenu>  
+                            <p:menuitem value="Welcome! #{adminAccessController.loginUsername} |     " style="color: #0033cc; font-weight: bold"/>
+                            <p:submenu label="Transactions" icon="ui-icon-document">  
+                                <p:column>   
+                                    <p:submenu>  
+                                        <!--<p:menuitem value="Create Flexi Invoice" icon="ui-icon-search" url="create-invoice.xhtml"/>--> 
+                                        <p:menuitem value="View Today's Transaction" icon="ui-icon-search" url="day-sales.xhtml"/> 
+                                        <p:menuitem value="View General Transaction" icon="ui-icon-search" url="transaction.xhtml"/> 
+                                        <p:menuitem value="View Debtor's List" icon="ui-icon-search" url="debtors_list.xhtml"/>  
+                                    </p:submenu>  
+                                </p:column>  
+                            </p:submenu>
+                            <p:menuitem value="Material Setup" icon="ui-icon-suitcase" url="material-setup.xhtml" /> 
+                            <p:menuitem value="Discount Group" icon="ui-icon-triangle-1-w" url="discount-group-setup.xhtml" /> 
+                            <p:menuitem value="Customer Management" icon="ui-icon-person" url="customer-management.xhtml" /> 
+                            <p:menuitem value="Reports" url="reports.xhtml" icon="ui-icon-copy" />  
+                            <p:menuitem value="User Setup" url="user-management.xhtml" icon="ui-icon-contact" />  
+                            <p:menuitem value="Settings" url="settings.xhtml" icon="ui-icon-wrench" />  
+                            <p:menuitem value="Logout" icon="ui-icon-power" 
+                                        action="#{userLogin.logoutClient()}" style="color: red"/>  
+                        </p:megaMenu>   
+                    </h:form>
+                    <ui:insert name="content" >
+
+                    </ui:insert>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:panelGroup>
+    </h:body>
+</html>
+
+

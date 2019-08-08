@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="adminUserForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/user.png"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="User Management" style="font-size: 18px"/>
+                </h:panelGrid>
+            </h:panelGroup>
+            <p:panel id="adminUserPanel" header="User Management">
+                <h:panelGrid columns="5" id="adminUserInputPanel">
+                    <h:outputText value="User Full Name:"/>
+                    <h:inputText value="#{userController.adminUser.fullName}" 
+                                 style="width: 350px"/>  
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText value="AdminUser Cost:"/>
+                    <h:selectOneMenu  value="#{userController.userLevel}" style="width: 200px">
+                        <f:selectItem itemValue="cashier" itemLabel="Cashier" /> 
+                        <f:selectItem itemValue="admin" itemLabel="Administrator" /> 
+                    </h:selectOneMenu>
+                    <h:outputText value="Username:"/>
+                    <h:inputText value="#{userController.adminUser.username}" 
+                                 style="width: 200px"/>  
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText value="Password:"/>
+                    <h:inputSecret value="#{userController.password}"
+                                 style="width: 200px"/> 
+                    <h:outputText value="User Priviledge/Access:"/>
+                    <h:selectOneMenu  value="#{userController.adminUser.userPrivilege}" style="width: 200px">
+                        <f:selectItem itemValue="noXchange" itemLabel="Do not Change Price" /> 
+                        <f:selectItem itemValue="XPrice" itemLabel="Change Price" /> 
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <h:panelGroup layout="block" styleClass="admin-buttons"> 
+                    <p:commandButton value="Add New AdminUser" actionListener="#{userController.adminUserAdd()}" 
+                                     update=":adminUserForm:adminUserPanel :adminUserForm:amessage"
+                                     icon="ui-icon-document" rendered = "#{userController.adminUserIsAdd}" styleClass="btn"/>
+                    <p:commandButton value="Update" actionListener="#{userController.adminUserUpdate()}" icon="ui-icon-disk" 
+                                     update=":adminUserForm:adminUserPanel :adminUserForm:amessage"
+                                     rendered = "#{!userController.adminUserIsAdd}" styleClass="btn" />
+                    <p:commandButton value="Reset" action="#{userController.adminUserReset}" 
+                                     update=":adminUserForm:adminUserPanel :adminUserForm:amessage"
+                                     icon="ui-icon-transferthick-e-w"  rendered = "#{!userController.adminUserIsAdd}" styleClass="btn" />
+                    <p:commandButton value="#{userController.statusButton}" action="#{userController.adminUserDelete}" icon="ui-icon-closethick" styleClass="btn" rendered = "#{!userController.adminUserIsAdd}" onclick="return confirm('Would you like to #{userController.statusButton} this User? ');" />
+                </h:panelGroup>
+                <p:dataTable id="adminUsertbl"
+                             var="item" rows="15" selection="#{userController.selectedAdminUser}"
+                             rowKey="#{item.adminUserId}" selectionMode="single"
+                             value="#{userController.adminUserList}">
+                    <p:ajax event="rowSelect" listener="#{userController.handleAdminUserSelection()}" update="adminUsertbl :adminUserForm:adminUserPanel"/>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="No."  />
+                        </f:facet>
+                        <h:outputText value="#{item.adminUserId}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 300px">
+                        <f:facet name="header" >
+                            <h:outputText value="Full Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.fullName}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="Username"  />
+                        </f:facet>
+                        <h:outputText value="#{item.username}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="Password"  />
+                        </f:facet>
+                        <h:outputText value="#{item.userPassword}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="Access Level"  />
+                        </f:facet>
+                        <h:outputText value="#{item.accessLevel.acid}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 200px">
+                        <f:facet name="header" >
+                            <h:outputText value="Last Login"  />
+                        </f:facet>
+                        <h:outputText value="#{item.lastLogin}">
+                            <f:convertDateTime pattern="dd/MM/yy hh:mm:ss a" timeZone="GMT"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column style="text-align: left; width: 80px">
+                        <f:facet name="header" >
+                            <h:outputText value="Status"  />
+                        </f:facet>
+                        <h:outputText value="#{item.status == '1'?'Enabled':'Disabled'}" style="#{item.status == '1'?'color:green':'color:red'}"/>
+                    </p:column>
+
+                </p:dataTable>
+            </p:panel>
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+
+</h:panelGroup>

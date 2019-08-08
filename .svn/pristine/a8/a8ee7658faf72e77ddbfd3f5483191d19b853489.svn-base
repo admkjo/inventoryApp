@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="settingsForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/settings.png"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Settings" style="font-size: 18px"/>
+                </h:panelGrid>
+            </h:panelGroup>
+            <p:panel id="settingsPanel" header="Application Settings">
+                <h:panelGrid columns="5" id="settingsInputPanel">
+                    <h:outputText value="Settings Name:"/>
+                    <h:inputText value="#{settingsController.settings.settingname}" 
+                                 disabled="true" style="width: 200px"/>  
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText value="Settings Cost:"/>
+                    <h:inputText value="#{settingsController.settings.settingvalue}" style="width: 400px"/>
+                </h:panelGrid>
+                <h:panelGroup layout="block" styleClass="admin-buttons"> 
+                    
+                    <p:commandButton value="Update" actionListener="#{settingsController.settingsUpdate()}" icon="ui-icon-disk" 
+                                     disabled="#{settingsController.settingsIsAdd}"
+                                     update=":settingsForm:settingsPanel :settingsForm:amessage" styleClass="btn" />
+                    
+                </h:panelGroup>
+                <p:dataTable id="settingstbl"
+                             var="item" rows="15" selection="#{settingsController.selectedSettings}"
+                             rowKey="#{item.settingsId}" selectionMode="single"
+                             value="#{settingsController.settingsList}">
+                    <p:ajax event="rowSelect" listener="#{settingsController.handleSettingsSelection()}" update="settingstbl :settingsForm:settingsPanel"/>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="No."  />
+                        </f:facet>
+                        <h:outputText value="#{item.settingsId}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 300px">
+                        <f:facet name="header" >
+                            <h:outputText value="Settings Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.settingname}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 300px">
+                        <f:facet name="header" >
+                            <h:outputText value="Settings Value"  />
+                        </f:facet>
+                        <h:outputText value="#{item.settingvalue}" style="font-weight: normal"/>
+                    </p:column>
+
+                </p:dataTable>
+            </p:panel>
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+
+</h:panelGroup>

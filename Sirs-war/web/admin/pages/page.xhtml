@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:forms="http://java.sun.com/jsf/composite/forms">
+    <h:panelGroup id="leftlink" layout="block">
+        <h:panelGroup layout="block" styleClass="action">All Links</h:panelGroup>
+        <ui:include src="links.xhtml"/>
+    </h:panelGroup>
+    
+    <h:panelGroup id="divdetails" layout="block">
+        <h:panelGroup layout="block" styleClass="action">
+            Action Here | <a href="?page=${startupController.page}">add</a>
+        </h:panelGroup>
+        <ui:param name="updatepage" value="${startupController.page}_update.xhtml" />
+        <ui:param name="addpage" value="${startupController.page}_add.xhtml" />
+        <ui:include src="${startupController.itemId == null ? addpage : updatepage}"/>
+    </h:panelGroup>
+    <h:panelGroup id="mlist" layout="block">
+        <h:panelGroup layout="block" styleClass="ptitle">
+            <a href="pages/?page=${startupController.page}">add</a>
+            <h:panelGroup id="searchdiv" layout="block">
+                <ui:param name="dataSource" value="pages/${startupController.page}_search.xhtml?aj&amp;page=${startupController.page}&amp;qs="  />
+                <h:form prependId="false">
+                    <input name="qsrh" type="text" id="qsrh" onkeyup="getData(dataSource + this.value, 'searchres'); alert(this.value)" value="search" size="40"/>
+                </h:form><div id="searchres">Here</div>
+            </h:panelGroup>
+            <div style="clear: both"/>
+        </h:panelGroup>
+        <h:panelGroup layout="block" id="mtop" style="clear: both">
+            <ui:param name="viewpage" value="${startupController.page}_view.xhtml" />
+            <ui:include src="${viewpage}"/>
+        </h:panelGroup>
+    </h:panelGroup>
+    <div style="clear: both"/>
+</h:panelGroup>
+

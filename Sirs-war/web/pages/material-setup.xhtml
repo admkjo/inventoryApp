@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="materialForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/material.png"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Material Setup" style="font-size: 18px"/>
+                </h:panelGrid>
+            </h:panelGroup>
+            <p:panel id="materialPanel" header="Material Types with Cost">
+                <h:panelGrid columns="8" id="materialInputPanel">
+                    <h:outputText value="Material Name:"/>
+                    <h:inputText value="#{materialController.material.materialName}" 
+                                  style="width: 250px"/>  
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText value="Material Type:"/>
+                    <h:selectOneMenu value="#{materialController.material.materialType}" style="width: 150px">
+                        <f:selectItem itemValue="S" itemLabel="Standard" /> 
+                        <f:selectItem itemValue="M" itemLabel="Measured" /> 
+                    </h:selectOneMenu>
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText value="Material Cost:"/>
+                    <h:inputText value="#{materialController.material.materialCost}" dir="rtl" style="width: 100px"/>
+                </h:panelGrid>
+                <h:panelGroup layout="block" styleClass="admin-buttons"> 
+                    <p:commandButton value="Add New Material" actionListener="#{materialController.materialAdd()}" 
+                                     update=":materialForm:materialPanel :materialForm:amessage"
+                                     icon="ui-icon-document" rendered = "#{materialController.materialIsAdd}" styleClass="btn"/>
+                    <p:commandButton value="Update" actionListener="#{materialController.materialUpdate()}" icon="ui-icon-disk" 
+                                     update=":materialForm:materialPanel :materialForm:amessage"
+                                     rendered = "#{!materialController.materialIsAdd}" styleClass="btn" />
+                    <p:commandButton value="Reset" action="#{materialController.materialReset}" 
+                                     update=":materialForm:materialPanel :materialForm:amessage"
+                                     icon="ui-icon-transferthick-e-w"  rendered = "#{!materialController.materialIsAdd}" styleClass="btn" />
+                    <p:commandButton value="Delete" action="#{materialController.materialDelete}" icon="ui-icon-closethick" styleClass="btn" rendered = "#{!materialController.materialIsAdd}" onclick="return confirm('Would you like to delete this Material? ');" />
+                </h:panelGroup>
+                <p:dataTable id="materialtbl"
+                             var="item" selection="#{materialController.selectedMaterial}"
+                             rowKey="#{item.materialId}" selectionMode="single"
+                             value="#{materialController.materialList}">
+                    <p:ajax event="rowSelect" listener="#{materialController.handleMaterialSelection()}" update="materialtbl :materialForm:materialPanel"/>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="No."  />
+                        </f:facet>
+                        <h:outputText value="#{item.materialId}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 500px">
+                        <f:facet name="header" >
+                            <h:outputText value="Material Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.materialName}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="Material Type"  />
+                        </f:facet>
+                        <h:outputText value="#{item.materialType=='S'?'Standard':'Measured'}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="width: 100px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Cost"  />
+                        </f:facet>
+                        <h:outputText value="#{item.materialCost}" style=" font-weight: bold">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+
+                </p:dataTable>
+            </p:panel>
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+
+</h:panelGroup>

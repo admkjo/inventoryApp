@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="customerMaterialGroupForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/customerMaterialGroup.png"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Discout Group Setup" style="font-size: 18px"/>
+                </h:panelGrid>
+            </h:panelGroup>
+            <p:tabView activeIndex="0"  id="groupTab">
+                <p:tab title="Customer Group Eligibity">
+                    <p:panel id="customerMaterialGroupPanel" header="Customer Material Discount Group ">
+                        <h:panelGrid columns="6" id="customerMaterialGroupInputPanel">
+                            <h:outputText value="Select Customer Group:"/>
+                            <h:selectOneMenu id="grouping" value="#{customerMaterialGroupController.customerMaterialGroup.groupId}" style="width: 200px">
+                                <f:selectItem itemLabel="--Select Group--" itemValue=""/>
+                                <f:selectItems value="#{customerMaterialGroupController.customerGroupSelect}" /> 
+                            </h:selectOneMenu>
+                            <h:outputText style="margin-left: 50px"/> 
+                            <h:outputText value="Select Material Type:"/>
+                            <h:selectOneMenu id="materialss" value="#{customerMaterialGroupController.customerMaterialGroup.material}" style="width: 200px">
+                                <f:selectItem itemLabel="--Select Material--" itemValue=""/>
+                                <f:selectItems value="#{customerMaterialGroupController.materialSelect}" /> 
+                                <p:ajax update="normalPrice" listener="#{customerMaterialGroupController.handleMaterialSelect()}"/>
+                            </h:selectOneMenu>
+                            <h:outputText style="margin-left: 50px"/>
+                            <h:outputText value="Normal Material Cost:"/>
+                            <h:inputText id="normalPrice" value="#{customerMaterialGroupController.oldPrice}" dir="rtl" style="width: 100px" disabled="true"/>
+
+                            <h:outputText style="margin-left: 50px"/>
+                            <h:outputText value="New Material Cost:"/>
+                            <h:inputText value="#{customerMaterialGroupController.customerMaterialGroup.newPrice}" dir="rtl" style="width: 100px"/>
+                        </h:panelGrid>
+                        <h:panelGroup layout="block" styleClass="admin-buttons"> 
+                            <p:commandButton value="Add New Discount Group" actionListener="#{customerMaterialGroupController.customerMaterialGroupAdd()}" 
+                                             update=":customerMaterialGroupForm:groupTab :customerMaterialGroupForm:amessage"
+                                             icon="ui-icon-document" rendered = "#{customerMaterialGroupController.customerMaterialGroupIsAdd}" styleClass="btn"/>
+                            <p:commandButton value="Update" actionListener="#{customerMaterialGroupController.customerMaterialGroupUpdate()}" icon="ui-icon-disk" 
+                                             update=":customerMaterialGroupForm:groupTab :customerMaterialGroupForm:amessage"
+                                             rendered = "#{!customerMaterialGroupController.customerMaterialGroupIsAdd}" styleClass="btn" />
+                            <p:commandButton value="Reset" action="#{customerMaterialGroupController.customerMaterialGroupReset}" 
+                                             update=":customerMaterialGroupForm:groupTab :customerMaterialGroupForm:amessage"
+                                             icon="ui-icon-transferthick-e-w"  rendered = "#{!customerMaterialGroupController.customerMaterialGroupIsAdd}" styleClass="btn" />
+                            <p:commandButton value="Delete" action="#{customerMaterialGroupController.customerMaterialGroupDelete}" icon="ui-icon-closethick" styleClass="btn" rendered = "#{!customerMaterialGroupController.customerMaterialGroupIsAdd}" onclick="return confirm('Would you like to delete this CustomerMaterialGroup? ');" />
+                        </h:panelGroup>
+                        <p:dataTable id="customerMaterialGrouptbl"
+                                     var="item" selection="#{customerMaterialGroupController.selectedCustomerMaterialGroup}"
+                                     rowKey="#{item.groupMaterialId}" selectionMode="single"
+                                     value="#{customerMaterialGroupController.customerMaterialGroupList}">
+                            <p:ajax event="rowSelect" listener="#{customerMaterialGroupController.handleCustomerMaterialGroupSelection()}" update="customerMaterialGrouptbl :customerMaterialGroupForm:groupTab"/>
+                            <p:column style="text-align: left; width: 100px">
+                                <f:facet name="header" >
+                                    <h:outputText value="Group ID"  />
+                                </f:facet>
+                                <h:outputText value="#{item.groupMaterialId}" style="font-weight: normal"/>
+                            </p:column>
+                            <p:column style="text-align: left; width: 500px">
+                                <f:facet name="header" >
+                                    <h:outputText value="Group Name"  />
+                                </f:facet>
+                                <h:outputText value="#{item.groupId.groupName}" style="font-weight: normal"/>
+                            </p:column>
+                            <p:column style="text-align: left; width: 300px">
+                                <f:facet name="header" >
+                                    <h:outputText value="Material Name"  />
+                                </f:facet>
+                                <h:outputText value="#{item.material.materialName}" style="font-weight: normal"/>
+                            </p:column>
+                            <p:column style="width: 100px;background: #f2d3d3; text-align: right">
+                                <f:facet name="header" >
+                                    <h:outputText value="Material Normal Cost"  />
+                                </f:facet>
+                                <h:outputText value="#{item.material.materialCost}" style=" font-weight: bold">
+                                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                                </h:outputText>
+                            </p:column> 
+                            <p:column style="width: 100px;background: #ccffcc; text-align: right">
+                                <f:facet name="header" >
+                                    <h:outputText value="New Cost"  />
+                                </f:facet>
+                                <h:outputText value="#{item.newPrice}" style=" font-weight: bold">
+                                    <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                                </h:outputText>
+                            </p:column> 
+
+                        </p:dataTable> 
+                    </p:panel>
+                </p:tab>
+                <p:tab id="addPanel" title="Add New Group">
+                    <h:panelGrid columns="2" id="customerGroupInputPanel">
+                        <h:outputText value="Group Name:"/>
+                        <h:inputText value="#{customerMaterialGroupController.customerGroup.groupName}" 
+                                     style="width: 250px"/>  
+                        <h:outputText style="margin-left: 50px"/>
+
+                    </h:panelGrid>
+                    <h:panelGroup layout="block" styleClass="admin-buttons"> 
+                        <p:commandButton value="Add New Group" actionListener="#{customerMaterialGroupController.customerGroupAdd()}" 
+                                         update=":customerMaterialGroupForm:groupTab :customerMaterialGroupForm:amessage"
+                                         icon="ui-icon-document" rendered = "#{customerMaterialGroupController.customerGroupIsAdd}" styleClass="btn"/>
+                        <p:commandButton value="Update" actionListener="#{customerMaterialGroupController.customerGroupUpdate()}" icon="ui-icon-disk" 
+                                         update=":customerMaterialGroupForm:groupTab :customerMaterialGroupForm:amessage"
+                                         rendered = "#{!customerMaterialGroupController.customerGroupIsAdd}" styleClass="btn" />
+                        <p:commandButton value="Reset" action="#{customerMaterialGroupController.customerGroupReset}" 
+                                         update=":customerMaterialGroupForm:groupTab :customerMaterialGroupForm:amessage"
+                                         icon="ui-icon-transferthick-e-w"  rendered = "#{!customerMaterialGroupController.customerGroupIsAdd}" styleClass="btn" />
+                    </h:panelGroup>
+                    <p:dataTable id="addNewGroup"
+                                 var="item" selection="#{customerMaterialGroupController.selectedCustomerGroup}"
+                                 rowKey="#{item.groupId}" selectionMode="single"
+                                 value="#{customerMaterialGroupController.customerGroupList}">
+                        <p:ajax event="rowSelect" listener="#{customerMaterialGroupController.handleCustomerGroupSelection()}" update=":customerMaterialGroupForm:groupTab:addPanel"/>
+                        <p:column style="text-align: left; width: 100px">
+                            <f:facet name="header" >
+                                <h:outputText value="Group ID"  />
+                            </f:facet>
+                            <h:outputText value="#{item.groupId}" style="font-weight: normal"/>
+                        </p:column>
+                        <p:column style="text-align: left; width: 500px">
+                            <f:facet name="header" >
+                                <h:outputText value="Group Name"  />
+                            </f:facet>
+                            <h:outputText value="#{item.groupName}" style="font-weight: normal"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:tab>
+            </p:tabView>
+
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+
+</h:panelGroup>

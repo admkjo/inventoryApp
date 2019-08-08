@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <f:view locale="#{languageSelectorController.userSelectedLanguage}">
+        <h:head>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <link href="./theme/css/main.css" rel="stylesheet" type="text/css" />
+            <!--<link rel="shortcut icon" href="./theme/scapital/nav/favicon.ico" type="image/x-icon" />-->
+            <title>
+                <ui:insert name="adv_title">${startupController.getApplicationSettings(0,1)}</ui:insert> 
+            </title>
+        </h:head>
+        <h:body>
+            <h:panelGroup layout="block" styleClass="adv_wrapper">
+
+                <h:panelGroup layout="block" styleClass="adv_header">
+                    <h:panelGroup layout="block" styleClass="logo fl"/>
+                    <h:panelGroup layout="block" styleClass="site_header_name fl">
+                        <h:panelGroup layout="block" class="site_name ">
+                            ${startupController.getApplicationSettings(0,1)}
+                        </h:panelGroup>
+                        <h:panelGroup layout="block" class="site_motto">
+                            ${startupController.getApplicationSettings(2,1)}
+                            <ui:param name="contact" value="#{startupController.pp.pageTitle == 'Contact Us' ? false:true}"/>
+                        </h:panelGroup>
+                    </h:panelGroup>
+
+                    <div class="clear"/>
+                </h:panelGroup>
+                <h:panelGroup layout="block" styleClass="menu fl">
+                    <h:outputText value="${startupController.homeLinks(1,false, true, false, false)}" escape="false"/>
+                </h:panelGroup>
+                <h:panelGroup layout="block" styleClass="pcontent fl">
+                    <h:panelGroup id="left-sidebar" layout="block" styleClass="two-col one fl" rendered="#{contact}">
+                        <h:outputText value="#{startupController.sublinks()}" escape="false"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="left-sidebar" layout="block" styleClass="contact-col small fl" rendered="#{!contact}">
+                        <div class="inner contact-address rounded">
+                            <h4>Address</h4>
+                            <h:outputText value="${startupController.getApplicationSettings(23,1)}" escape="false"/>
+                            <h4 class="title">Give us a call</h4>
+                            <h:outputText value="${startupController.getApplicationSettings(8,1)}" escape="false"/> 
+                            <h4 class="title">E-mail Us</h4>
+                            <h:outputText value="${startupController.getApplicationSettings(7,1)}" escape="false"/>
+                        </div>
+                    </h:panelGroup>
+                    <h:panelGroup layout="block" styleClass="two-col two fl" style="width: #{!contact ? '480px' : '660px;'}; min-height: 300px">
+                        <div class="whereweare"><h:outputText value="#{startupController.hereAreWe}" escape="false"/></div>   
+                        <div class="ptitle"><h:outputText value="#{startupController.pp.pageTitle}" escape="false"/></div>
+                        <h:outputText value="#{startupController.pageFirstImage()}" escape="false"/>
+                        <div><h:outputText value="#{startupController.pp.pageContent}" escape="false"/></div>
+                        <ui:include src="/pages/included-pages.xhtml" />
+                        <ui:include src="/pages/category.xhtml" />
+                        <ui:include src="/pages/subpage.xhtml" /> 
+                    </h:panelGroup>
+                    <div style="clear: both"/>
+                </h:panelGroup>
+                <div style="clear: both"/>
+            </h:panelGroup>
+            <h:panelGroup layout="block" styleClass="adv-footer">
+                <div id="fmenu" class="row fl">
+                    <div class="block fl">
+                        <h3>Useful Links</h3>
+                        <h:outputText value="#{startupController.listCategoryData(139, false, false)}" escape="false"/>
+                    </div>
+                    <div class="block fl">
+                        <h3>${startupController.getPageDetails(5140).pageTitle}</h3>
+                        <h:outputText value="#{startupController.listCategoryData(133, false, false)}" escape="false"/>
+                    </div>
+                    <div class="block fl">
+                        <h3>${startupController.getPageDetails(5304).pageTitle}</h3> 
+                        <h:outputText value="#{startupController.listCategoryData(230, false, false)}" escape="false"/>
+                    </div>
+                    <div class="block fl"> 
+                        <h3>Contact Us</h3>
+                        <ul>
+                            <li><h:outputText value="${startupController.getApplicationSettings(7,1)}" escape="false"/></li>
+                            <li><h:outputText value="${startupController.getApplicationSettings(8,1)}" escape="false"/></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="legal fl">
+                    Copyright &copy; ${startupController.appDate} ${startupController.getApplicationSettings(0,1)}. All Rights Reserved.<br/>
+                    <a href="http://www.sabonay.com" title="Sabonay Technologies" target="_blank">Powered By: Sabonay Technologies</a>
+                </div>
+            </h:panelGroup>
+        </h:body>
+    </f:view>
+</html>
+
+

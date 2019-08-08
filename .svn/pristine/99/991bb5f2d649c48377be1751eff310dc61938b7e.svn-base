@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="debtorListForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/debtorslist.png" width="40" height="40"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Debtors' List" style="font-size: 18px"/>
+
+                </h:panelGrid>
+                <p:contextMenu for="debtorslisttbl" style="width: 200px">   
+                    <p:menuitem id="showJobDetails" value="Show Job Detail" update=":jobDetailDialog" icon="ui-icon-search" oncomplete="viewJobDialog.show()"/>  
+                    <p:menuitem id="showAllPayments" value="Show All Payments" update=":paymentDialog" icon="ui-icon-close" oncomplete="viewPaymentDialog.show()"/>  
+                </p:contextMenu>  
+                <p:blockUI block="debtorslisttbl" trigger="showJobDetails" > 
+                    LOADING<br />  
+                    <p:graphicImage value="/theme/navs/ajax-loader.gif"/>  
+                </p:blockUI> 
+                <p:dataTable id="debtorslisttbl"
+                             var="item" rows="15" paginator="true" selectionMode="single" rowKey="#{item.debtorId}"
+                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="15,20,30" selection="#{debtorController.selectedDebtor}"
+                             value="#{debtorController.debtorList}">
+                    <p:ajax event="rowSelect" listener="#{debtorController.handleDebtorSelection()}" update="debtorslisttbl"/> 
+                    <p:column style="text-align: left; width: 40px">
+                        <f:facet name="header" >
+                            <h:outputText value="Debtor ID"  /> 
+                        </f:facet>
+                        <h:outputText value="#{item.debtorId}"/> 
+                    </p:column>
+                    <p:column style="text-align: left; width: 80px">
+                        <f:facet name="header" >
+                            <h:outputText value="Job Date"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.jobDate}">
+                            <f:convertDateTime pattern="dd-MMM-yyyy"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: left; width: 40px">
+                        <f:facet name="header" >
+                            <h:outputText value="Invoice"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.invoiceNo}" escape="false"/> 
+                    </p:column>
+                    <p:column style="text-align: left; width: 170px">
+                        <f:facet name="header" >
+                            <h:outputText value="Customer Name"  /> 
+                        </f:facet>
+                        <h:outputText value="#{item.customer.customerName}"/> 
+                        <f:facet name="footer" >
+                            <h:outputText value="Totals: "  style="font-size: 14px; font-weight: bolder"/>
+                        </f:facet>
+                    </p:column>
+                    <p:column style="text-align: left; width: 40px">
+                        <f:facet name="header" >
+                            <h:outputText value="Cell Phone"  /> 
+                        </f:facet>
+                        <h:outputText value="#{item.customer.phoneNumber}"/> 
+                    </p:column>
+
+                    <p:column style="width: 80px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Amount Due"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.amountDue}" style="font-size: 12px; font-weight: bold">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                    <p:column style="width: 80px;background: #ccffcc; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Amount Paid"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.payment.amountPaid}" style="font-size: 12px; font-weight: bold">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                    </p:column> 
+                    <p:column style="width: 80px;background: #ffeded; text-align: right">
+                        <f:facet name="header" >
+                            <h:outputText value="Balance"  />
+                        </f:facet>
+                        <h:outputText value="#{item.job.payment.balance}" style="font-size: 12px; font-weight: bold; color: #cc0000">
+                            <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                        </h:outputText>
+                        <f:facet name="footer" >
+                            <h:outputText value="#{transactionController.totalDebtorBalance()}" style="font-size: 14px; font-weight: bolder">
+                                <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                            </h:outputText>
+                        </f:facet>
+                    </p:column> 
+                </p:dataTable>
+            </h:panelGroup>
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+    <p:dialog id="jobDetailDialog" header="Items in transaction with Invoice No.: #{transactionController.selectedJob.invoiceNo}" 
+              widgetVar="viewJobDialog" resizable="false"  draggable="false"
+              width="950" showEffect="clip" hideEffect="fold" modal="true" >
+    </p:dialog>  
+
+    <p:dialog id="paymentDialog" header="All Payments on Invoice No.: #{transactionController.selectedJob.invoiceNo}" 
+              widgetVar="viewPaymentDialog" resizable="false"  draggable="false"
+              width="950" showEffect="clip" hideEffect="fold" modal="true" >
+    </p:dialog>  
+
+</h:panelGroup>

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="settingsForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/reports.png"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Reports" style="font-size: 18px"/>
+                </h:panelGrid>
+                <p:panel header="All Report Listing">
+                    <h:panelGrid columns="3">
+                        <p:commandButton value="Print Customer List"/>
+                        <p:commandButton value="Print Monthly Reports" oncomplete="monthlyReportingDialog.show()"/>
+                        <p:commandButton value="Print Debtors' List" action="#{reportController.printDebtorList()}" ajax="false"/>
+                        <h:outputText/>
+                        <h:outputText/>
+                        <h:outputText/>
+                    </h:panelGrid>
+
+                </p:panel>
+            </h:panelGroup>
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+
+    <p:dialog id="monthlyReportDialog" header="Monthly Reports" 
+              widgetVar="monthlyReportingDialog" resizable="false"  draggable="false"
+              width="400" showEffect="clip" hideEffect="fold" modal="true" >
+        <h:form >
+            <h:panelGrid columns="2">
+                <h:outputText value="From:"/>
+                <p:calendar pattern="dd-MMM-yyyy" timeZone="GMT" navigator="true"
+                            value="#{reportController.fromDate}">
+                </p:calendar>
+                <h:outputText value="To:"/>
+                <p:calendar pattern="dd-MMM-yyyy" timeZone="GMT" navigator="true"
+                            value="#{reportController.toDate}">
+                </p:calendar>
+                <h:outputText/>
+                <p:commandButton value="Print Report" action="#{reportController.printMonthlyReport()}" ajax="false"/>
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+
+</h:panelGroup>

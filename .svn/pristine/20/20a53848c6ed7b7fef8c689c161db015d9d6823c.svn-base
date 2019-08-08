@@ -1,0 +1,207 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<h:panelGroup xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://java.sun.com/jsf/html"
+              xmlns:f="http://java.sun.com/jsf/core"
+              xmlns:ui="http://java.sun.com/jsf/facelets"
+              xmlns:p="http://primefaces.org/ui">
+    <h:form id="customerForm" prependId="false">
+        <p:growl id="amessage" showDetail="false" />
+        <h:panelGroup layout="block">
+            <h:panelGroup layout="block" style="margin-top: 10px">
+                <h:panelGrid columns="3">
+                    <h:graphicImage url="./theme/navs/icons/customer.png"/>
+                    <h:outputText style="margin-left: 10px"/>
+                    <h:outputText value="Customer Management" style="font-size: 18px"/>
+                </h:panelGrid>
+                <p:blockUI block="customertbl" trigger="historyButton" >  
+                    LOADING<br />  
+                    <p:graphicImage value="/theme/navs/ajax-loader.gif"/>   
+                </p:blockUI> 
+            </h:panelGroup>
+            <p:panel id="customerPanel" header="List of all Customers">
+                <h:panelGrid columns="5" id="customerInputPanel">
+                    <h:outputText value="Customer Name:"/>
+                    <h:inputText value="#{customerController.customer.customerName}" 
+                                 style="width: 200px"/>  
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText value="Customer Phone Number:"/>
+                    <h:inputText value="#{customerController.customer.phoneNumber}" style="width: 200px"/>
+                    <h:outputText value="Address:"/>
+                    <h:inputText value="#{customerController.customer.postalAddress}" 
+                                 style="width: 200px"/>  
+                    <h:outputText style="margin-left: 50px"/> 
+                    <h:outputText value="E-mail:"/>
+                    <h:inputText value="#{customerController.customer.email}" style="width: 200px"/>
+                    <h:outputText value="Select Customer Group:"/>
+                    <h:selectOneMenu id="grouping" value="#{customerController.customer.customerGroup}" style="width: 230px">
+                        <f:selectItem itemLabel="--No Group--" itemValue=""/>
+                        <f:selectItems value="#{customerController.customerGroupSelect}" /> 
+                    </h:selectOneMenu>
+                    <h:outputText style="margin-left: 50px"/>
+                    <h:outputText/>
+                    <p:commandButton id="historyButton" icon="ui-icon-search" value="Preview Transaction History"  
+                                     oncomplete="viewCHistoryDialog.show()" update=":jobHistoryDialog"
+                                     disabled="#{customerController.customerIsAdd}" style="color: #990066; font-size: 11px"/>
+                </h:panelGrid>
+                <h:panelGroup layout="block" styleClass="admin-buttons"> 
+                    <p:commandButton value="Add New Customer" actionListener="#{customerController.customerAdd()}" 
+                                     update=":customerForm:customerPanel :customerForm:amessage"
+                                     icon="ui-icon-document" rendered = "#{customerController.customerIsAdd}" styleClass="btn"/>
+                    <p:commandButton value="Update" actionListener="#{customerController.customerUpdate()}" icon="ui-icon-disk" 
+                                     update=":customerForm:customerPanel :customerForm:amessage"
+                                     rendered = "#{!customerController.customerIsAdd}" styleClass="btn" />
+                    <p:commandButton value="Reset" action="#{customerController.customerReset}" 
+                                     update=":customerForm:customerPanel :customerForm:amessage"
+                                     icon="ui-icon-transferthick-e-w"  rendered = "#{!customerController.customerIsAdd}" styleClass="btn" />
+                    <p:commandButton value="#{customerController.statusButton}" action="#{customerController.customerDelete}" icon="ui-icon-closethick" styleClass="btn" rendered = "#{!customerController.customerIsAdd}" onclick="return confirm('Would you like to #{customerController.statusButton} this Customer? ');" />
+                </h:panelGroup>
+                <p:dataTable id="customertbl"
+                             var="item" rows="15" selection="#{customerController.selectedCustomer}"
+                             rowKey="#{item.customerId}" selectionMode="single"
+                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             paginator="true" rowsPerPageTemplate="15,20,30"
+                             value="#{customerController.customerList}">
+                    <p:ajax event="rowSelect" listener="#{customerController.handleCustomerSelection()}" update="customertbl :customerForm:customerPanel"/>
+                    <f:facet name="header">  
+                        <p:outputPanel>  
+                            <h:outputText value="Customer Name:" />  
+                            <h:inputText value="#{customerController.customerSearch}"/>
+                            <p:commandButton value="Search" actionListener="#{customerController.searchCustomers()}" update=":customerForm:customertbl"/>
+                        </p:outputPanel>
+                    </f:facet>  
+                    <p:column style="text-align: left; width: 100px">
+                        <f:facet name="header" >
+                            <h:outputText value="No."  />
+                        </f:facet>
+                        <h:outputText value="#{item.customerId}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 200px">
+                        <f:facet name="header" >
+                            <h:outputText value="Customer Name"  />
+                        </f:facet>
+                        <h:outputText value="#{item.customerName}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 200px">
+                        <f:facet name="header" >
+                            <h:outputText value="Phone Number"  />
+                        </f:facet>
+                        <h:outputText value="#{item.phoneNumber}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 200px">
+                        <f:facet name="header" >
+                            <h:outputText value="Address"  />
+                        </f:facet>
+                        <h:outputText value="#{item.postalAddress}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 200px">
+                        <f:facet name="header" >
+                            <h:outputText value="E-mail"  />
+                        </f:facet>
+                        <h:outputText value="#{item.email}" style="font-weight: normal"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 80px">
+                        <f:facet name="header" >
+                            <h:outputText value="Status"  />
+                        </f:facet>
+                        <h:outputText value="#{item.status == '1'?'Enabled':'Disabled'}" style="#{item.status == '1'?'color:green':'color:red'}"/>
+                    </p:column>
+                    <p:column style="text-align: left; width: 200px">
+                        <f:facet name="header" >
+                            <h:outputText value="Group"  />
+                        </f:facet>
+                        <h:outputText value="#{item.customerGroup.groupName}" style="font-weight: normal"/>
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+        </h:panelGroup>
+        <div style="clear: both"/> 
+    </h:form> 
+    <p:dialog id="jobHistoryDialog" header="Transaction History for : #{customerController.selectedCustomer.customerName}" 
+              widgetVar="viewCHistoryDialog" resizable="false"  draggable="false"
+              width="800" showEffect="clip" hideEffect="fold" modal="true" >
+        <h:form >
+            <h:panelGrid columns="1">
+
+            </h:panelGrid>
+            <p:dataTable id="ctransactiontbl"
+                         var="item" rows="15" paginator="true" selectionMode="single" rowKey="#{item.jobId}"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         rowsPerPageTemplate="15,20"
+                         value="#{customerController.jobList}">
+                <p:column style="text-align: left; width: 40px">
+                    <f:facet name="header" >
+                        <h:outputText value="Invoice"  /> 
+                    </f:facet>
+                    <h:outputText value="#{item.invoiceNo}"/> 
+                </p:column>
+                <p:column style="text-align: left; width: 170px"> 
+                    <f:facet name="header" >
+                        <h:outputText value="Date"  />
+                    </f:facet>
+                    <h:outputText value="#{item.jobDate}">
+                        <f:convertDateTime pattern="dd-MMM-yyyy hh:mm:ss a"/>
+                    </h:outputText>
+                </p:column>
+
+                <ui:param name="mode" value="#{item.payment.paymentMode}"/>
+                <ui:param name="modecash" value="Cash Payment"/>
+                <ui:param name="modecheq" value="Cheque Payment"/>
+                <ui:param name="modebaac" value="Bank Account Transfer"/>
+                <ui:param name="modemomo" value="Mobile Money Payment"/>
+                <ui:param name="alltrack" value="#{mode=='CASH'?modecash:mode=='CHEQ'?modecheq:mode=='BAAC'?modebaac:mode=='MOMO'?modemomo:'Emma doing Programming'}"/>
+                <p:column style="width: 60px;text-align: left">
+                    <f:facet name="header" >
+                        <h:outputText value="Mode"  />
+                    </f:facet>
+                    <h:outputText value="#{item.payment.paymentMode}" 
+                                  title="#{alltrack}"
+                                  style="font-size: 11px"/>
+                </p:column>
+
+                <p:column style="width: 80px;background: #ffeded; text-align: right">
+                    <f:facet name="header" > 
+                        <h:outputText value="Amt. Due"  />
+                    </f:facet>
+                    <h:outputText value="#{item.amountDue}" style="font-size: 12px; font-weight: bold">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                </p:column> 
+                <p:column style="width: 80px;background: #ccffcc; text-align: right">
+                    <f:facet name="header" >
+                        <h:outputText value="Discount"  />
+                    </f:facet>
+                    <h:outputText value="#{item.discount}" style="font-size: 12px; font-weight: bold">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                </p:column> 
+                <p:column style="width: 80px;background: #ccffcc; text-align: right">
+                    <f:facet name="header" >
+                        <h:outputText value="Amt. Paid"  />
+                    </f:facet>
+                    <h:outputText value="#{item.amountPaid}" style="font-size: 12px; font-weight: bold">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                </p:column> 
+                <p:column style="width: 60px;background: #ccffcc; text-align: right">
+                    <f:facet name="header" >
+                        <h:outputText value="Change"  />
+                    </f:facet>
+                    <h:outputText value="#{item.payment.changeGiven}" style="font-size: 12px; font-weight: bold">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                </p:column> 
+                <p:column style="width: 60px;background: #ffffcc; text-align: right">
+                    <f:facet name="header" >
+                        <h:outputText value="Bal. Owing"  /> 
+                    </f:facet>
+                    <h:outputText value="#{item.amountDue - item.discount - item.amountPaid}" style="font-size: 12px; font-weight: bold; #{item.payment.balance gt 0 ? 'text-decoration: normal;color:red':''}">
+                        <f:convertNumber maxFractionDigits="2" minFractionDigits="2"/>
+                    </h:outputText>
+                </p:column> 
+            </p:dataTable>
+        </h:form>
+
+
+    </p:dialog>
+</h:panelGroup>
